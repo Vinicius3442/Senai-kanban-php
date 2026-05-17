@@ -29,9 +29,10 @@ function cadastrarUsuario($pdo) {
         $nome = $_POST['nome'] ?? '';
 
         if (!empty($nome)) {
-            $stmt = $pdo->prepare("INSERT INTO usuarios (nome) VALUES (?)");
+            $stmt = $pdo->prepare("INSERT INTO usuarios (nome) VALUES (:nome)");
+            $stmt->bindParam(':nome', $nome, PDO::PARAM_STR);
             try {
-                $stmt->execute([$nome]);
+                $stmt->execute();
                 header("Location: cadastrar_usuario.php?sucesso=1");
             } catch (PDOException $e) {
                 header("Location: cadastrar_usuario.php?erro=" . urlencode("Erro ao cadastrar: " . $e->getMessage()));
@@ -51,8 +52,12 @@ function cadastrarTarefa($pdo) {
         $prioridade = $_POST['prioridade'] ?? '';
         
         if (!empty($usuario_id) && !empty($descricao) && !empty($setor) && !empty($prioridade)) {
-            $stmt = $pdo->prepare("INSERT INTO tarefas (usuario_id, descricao, setor, prioridade) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$usuario_id, $descricao, $setor, $prioridade]);
+            $stmt = $pdo->prepare("INSERT INTO tarefas (usuario_id, descricao, setor, prioridade) VALUES (:usuario_id, :descricao, :setor, :prioridade)");
+            $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+            $stmt->bindParam(':descricao', $descricao, PDO::PARAM_STR);
+            $stmt->bindParam(':setor', $setor, PDO::PARAM_STR);
+            $stmt->bindParam(':prioridade', $prioridade, PDO::PARAM_STR);
+            $stmt->execute();
             header("Location: index.php");
         } else {
             header("Location: cadastrar_tarefa.php?erro=Preencha todos os campos");
@@ -64,8 +69,9 @@ function cadastrarTarefa($pdo) {
 function excluirTarefa($pdo) {
     $id = $_GET['id'] ?? '';
     if (!empty($id)) {
-        $stmt = $pdo->prepare("DELETE FROM tarefas WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("DELETE FROM tarefas WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
     }
     header("Location: index.php");
     exit;
@@ -77,8 +83,10 @@ function alterarStatus($pdo) {
     $valid_status = ['a fazer', 'fazendo', 'concluido'];
     
     if (!empty($id) && in_array($status, $valid_status)) {
-        $stmt = $pdo->prepare("UPDATE tarefas SET status = ? WHERE id = ?");
-        $stmt->execute([$status, $id]);
+        $stmt = $pdo->prepare("UPDATE tarefas SET status = :status WHERE id = :id");
+        $stmt->bindParam(':status', $status, PDO::PARAM_STR);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
     }
     header("Location: index.php");
     exit;
@@ -93,8 +101,13 @@ function editarTarefa($pdo) {
         $usuario_id = $_POST['usuario_id'] ?? '';
 
         if (!empty($id) && !empty($descricao) && !empty($setor) && !empty($prioridade) && !empty($usuario_id)) {
-            $stmt = $pdo->prepare("UPDATE tarefas SET descricao = ?, setor = ?, prioridade = ?, usuario_id = ? WHERE id = ?");
-            $stmt->execute([$descricao, $setor, $prioridade, $usuario_id, $id]);
+            $stmt = $pdo->prepare("UPDATE tarefas SET descricao = :descricao, setor = :setor, prioridade = :prioridade, usuario_id = :usuario_id WHERE id = :id");
+            $stmt->bindParam(':descricao', $descricao, PDO::PARAM_STR);
+            $stmt->bindParam(':setor', $setor, PDO::PARAM_STR);
+            $stmt->bindParam(':prioridade', $prioridade, PDO::PARAM_STR);
+            $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
         }
         header("Location: index.php");
         exit;
