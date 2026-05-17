@@ -10,11 +10,15 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskSync - Cadastrar Tarefa</title>
     <link rel="stylesheet" href="assets/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">Task<span>Sync</span></div>
+        <div class="logo paper-logo">
+            <?= getPinSvg('blue') ?>
+            Task<span>Sync</span>
+        </div>
         <ul class="nav-links">
             <li><a href="index.php">Kanban Board</a></li>
             <li><a href="cadastrar_usuario.php">Cadastrar Usuário</a></li>

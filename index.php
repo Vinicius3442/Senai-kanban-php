@@ -1,11 +1,9 @@
 <?php
 require_once 'config.php';
 
-// Fetch users for the edit modal
 $stmtUsers = $pdo->query("SELECT id, nome FROM usuarios ORDER BY nome ASC");
 $usuarios = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch tasks with user names
 $query = "
     SELECT t.*, u.nome as usuario_nome 
     FROM tarefas t 
@@ -25,7 +23,6 @@ foreach ($tarefas as $tarefa) {
     $colunas[$tarefa['status']][] = $tarefa;
 }
 
-// Function to determine next/prev status
 function getNextStatus($current) {
     if ($current === 'a fazer') return 'fazendo';
     if ($current === 'fazendo') return 'concluido';
@@ -44,11 +41,15 @@ function getPrevStatus($current) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskSync - Gerenciamento Kanban</title>
     <link rel="stylesheet" href="assets/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">Task<span>Sync</span></div>
+        <div class="logo paper-logo">
+            <?= getPinSvg('blue') ?>
+            Task<span>Sync</span>
+        </div>
         <ul class="nav-links">
             <li><a href="index.php" class="active">Kanban Board</a></li>
             <li><a href="cadastrar_usuario.php">Cadastrar Usuário</a></li>
@@ -104,7 +105,6 @@ function getPrevStatus($current) {
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
@@ -165,6 +165,9 @@ function getPrevStatus($current) {
                 modal.style.display = "none";
             }
         }
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
@@ -175,40 +178,42 @@ function renderCard($t) {
     $prev = getPrevStatus($t['status']);
     $next = getNextStatus($t['status']);
     
-    // Format date
     $date = new DateTime($t['data_cadastro']);
     $formattedDate = $date->format('d/m/Y');
 
-    // Encode for JS
     $jsDesc = htmlspecialchars($t['descricao'], ENT_QUOTES);
     $jsSetor = htmlspecialchars($t['setor'], ENT_QUOTES);
 
-    // Generate a random rotation between -3 and 3 degrees
-    $randomRot = rand(-30, 30) / 10; // e.g. -2.5 to 3.0
+    $randomRot = rand(-30, 30) / 10;
 
     $html = "<div class='kanban-card' style='--rotate: {$randomRot}deg;'>";
+    $html .= getPinSvg('red');
     $html .= "  <div class='card-header'>";
     $html .= "      <span class='badge {$prioridadeClass}'>" . ucfirst($t['prioridade']) . "</span>";
     $html .= "      <span class='date'>{$formattedDate}</span>";
     $html .= "  </div>";
     $html .= "  <p class='desc'>" . htmlspecialchars($t['descricao']) . "</p>";
     $html .= "  <div class='meta'>";
-    $html .= "      <div class='meta-item'><strong>👤</strong> " . htmlspecialchars($t['usuario_nome']) . "</div>";
-    $html .= "      <div class='meta-item'><strong>🏢</strong> " . htmlspecialchars($t['setor']) . "</div>";
+    $html .= "      <div class='meta-item'><i data-lucide=\"user\" class=\"icon-sm\"></i> " . htmlspecialchars($t['usuario_nome']) . "</div>";
+    $html .= "      <div class='meta-item'><i data-lucide=\"briefcase\" class=\"icon-sm\"></i> " . htmlspecialchars($t['setor']) . "</div>";
     $html .= "  </div>";
     
     $html .= "  <div class='card-actions'>";
     if ($prev) {
-        $html .= "      <a href='acoes.php?acao=alterar_status&id={$t['id']}&status={$prev}' class='btn-icon' title='Mover Anterior'>⬅️</a>";
+        $html .= "      <a href='acoes.php?acao=alterar_status&id={$t['id']}&status={$prev}' class='btn-icon' title='Mover Anterior'><i data-lucide=\"arrow-left\"></i></a>";
+    } else {
+        $html .= "      <span style='width: 24px'></span>"; // Placeholder for alignment
     }
     
     $html .= "      <div class='center-actions'>";
-    $html .= "          <button onclick=\"openEditModal({$t['id']}, {$t['usuario_id']}, '{$jsDesc}', '{$jsSetor}', '{$t['prioridade']}')\" class='btn-edit'>Editar</button>";
-    $html .= "          <a href='acoes.php?acao=excluir_tarefa&id={$t['id']}' onclick=\"return confirm('Tem certeza que deseja excluir esta tarefa?')\" class='btn-delete'>Excluir</a>";
+    $html .= "          <button onclick=\"openEditModal({$t['id']}, {$t['usuario_id']}, '{$jsDesc}', '{$jsSetor}', '{$t['prioridade']}')\" class='btn-edit'><i data-lucide=\"edit-2\" class=\"icon-sm\"></i> Editar</button>";
+    $html .= "          <a href='acoes.php?acao=excluir_tarefa&id={$t['id']}' onclick=\"return confirm('Tem certeza que deseja excluir esta tarefa?')\" class='btn-delete'><i data-lucide=\"trash-2\" class=\"icon-sm\"></i> Excluir</a>";
     $html .= "      </div>";
 
     if ($next) {
-        $html .= "      <a href='acoes.php?acao=alterar_status&id={$t['id']}&status={$next}' class='btn-icon' title='Mover Próximo'>➡️</a>";
+        $html .= "      <a href='acoes.php?acao=alterar_status&id={$t['id']}&status={$next}' class='btn-icon' title='Mover Próximo'><i data-lucide=\"arrow-right\"></i></a>";
+    } else {
+        $html .= "      <span style='width: 24px'></span>"; // Placeholder for alignment
     }
     $html .= "  </div>";
     $html .= "</div>";

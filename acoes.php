@@ -1,10 +1,8 @@
 <?php
-// acoes.php
 require_once 'config.php';
 
 $acao = $_REQUEST['acao'] ?? '';
 
-// Roteamento de ações
 switch ($acao) {
     case 'cadastrar_usuario':
         cadastrarUsuario($pdo);
